@@ -1,0 +1,26 @@
+:section-style :empty
+
+:bodytext "This preliminary section demonstrates how to interface the synth part of PWGL with music notation. This protocol assumes typically some Lisp programming."
+
+:section-start "Copy-synth-patch scheme"
+:bodytext "In the following examples a box called 'copy-synth-patch' is used to copy the contents of an abstraction box count times (the abstraction contains a patch consisting of DSP-modules that are used to realize the instrument).  Thus the user has to define the abstraction only once and the system automatically copies this model as many times as required. In order to distinguish between different duplicated patch instances 'copy-synth-patch' generates automatically symbolic references to specific user defined entry points. These entry points are defined by connecting a 'synth-plug' box at the leafs of a synthesis patch. The entry-points are used afterwards to control the synthesis process. The symbolic references are pathnames, such as 'guitar1/1/freq' or 'guitar2/6/lfgain'.
+ 
+This scheme allows to associate an instrument to a score by adding to the 'synth-plug' boxes information about accessors. These accessors are defined as short methods that are used to access information from a note object, such midi, velocity, start-time, and duration. Furthermore, the user gives control labels (D, T, or C) to the synth-plug boxes whether they are used for discrete, trigger or continuous control purposes." 
+
+:bodytext "From this information (i.e. entry point pathnames, accessors and control labels) the system creates automatically both discrete and continuous control methods for the instrument in question."
+:section-end
+
+:section-start "Score interface"
+:bodytext "The score/music notation interface is realized in 3 main steps. 
+
+First, a Lisp-code box contains in textual form an instrument definition and accessor (or control) methods, which will be used later in the visual instrument definition (see below the second step). 
+
+Second, the main synthesis patch contains the visual instrument definition consisting of an abstraction which is duplicated by a 'copy-synth-patch' box count times. In the abstraction the accessor methods are used by the 'synth-plug' boxes to define the interface between the score information and the instrument definition. The 'synth-ctrl-mapping' box generates automatically control method definitions that are called by the notes when the score is translated to control information. Note that in order to play scores with the synth, you must set the second input of the synth-box to ':score'.
+
+The third step involves the preparation of a score where the instrument classes and instrument-instances are given for the parts that should be realized by the synthesis patch. 
+
+To listen a score in real-time select it and press space. This will automatically search for the associated synthesis patch, calculate the score, and start the current synth box. Now you should hear the score and see the text 'synth/score: CPU: xx time xx' in the information area of the PWGL output window. 
+
+Non-real-time mode can be evoked by changing the third ':dac' input of the synth-box to ':file'. To start the non-real-time calculation select the synth-box and press 'v'.
+"
+:section-end

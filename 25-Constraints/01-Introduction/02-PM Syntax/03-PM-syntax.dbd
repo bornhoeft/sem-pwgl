@@ -1,0 +1,56 @@
+:section-style :empty
+
+:section-start "PMC rule structure"
+
+:bodytext "A PMC rule consists of 3 main parts:"
+
+:items 
+- "a pattern-matching part (PM-part)"
+- "a Lisp-code part"
+- "a documentation string."
+
+:bodytext "A rule uses the PM-part to extract relevant information from a potential solution. This information is given to a Lisp test function that either accepts or rejects the current choice made by the search-engine. 
+
+Here are the main components of the PMC syntax:"
+:section-end
+
+
+:section-start "PM-part"
+:bodytext "?1         = variable
+*          = one or two wild cards
+i1         = index-variable
+?          = anonymous-variable"
+:section-end
+
+:section-start "Lisp-code part"
+:bodytext "(?if <test>)  = begins a Lisp expression
+l             = partial solution
+rl            = reversed partial solution
+len           = length of the partial solution"
+:section-end
+
+:section-start "Pattern matching examples"
+
+
+:code "input:   (1  2  3  4  5)
+pattern: (*          ?1)  
+match:    * = (1  2  3  4), ?1 = 5
+
+input:   (1  2  3  4)
+pattern: (*    ?1 ?2)
+match:    * = (1  2), ?1 = 3, ?2 = 4
+
+input:   (1  2  3  4  5  6  7)
+pattern: (?1 *          ?2 ?3)
+match:    * = (2 3 4 5), ?1 = 1, ?2 = 6, ?3 = 7
+
+input:   (1  2  3  4  5)
+pattern: (i1 i2      i5)  
+match:   i1 = 1, i2 = 2, i5 = 5
+
+
+input:   (1  2  3  4  5  6  7  8  9)
+pattern: (  i2 i3           i7    i9)  
+match:   i2 = 2, i3 = 3, i7 = 7, i9 = 9"
+:section-end
+

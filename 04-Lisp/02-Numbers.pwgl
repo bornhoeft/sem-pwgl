@@ -1,0 +1,57 @@
+(IN-PACKAGE :CCL)
+;; this patch was saved with PWGL version 1.0 beta RC 17 (0.9.17-170)
+(ASSERT-PATCH-SAVED-VERSION-NOT-NEWER-THAN (QUOTE ((0 9 17) 170)))
+(LET ((WIN (MAKE-INSTANCE (QUOTE PWGL-PW-WINDOW) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-COMMENT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-COMMENT-BOX-SUBVIEW) :R 1.0 :G 1.0 :B 1.0 :BOX-STRING "auto-evaluate" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 100 :Y 100 :WIDTH 756 :HEIGHT 363) :VALUE-STRING ";;; NUMBERS
+
+;;;There are three kinds of numbers that are used most commonly, integers, floating point numbers, and ratios.
+
+;;; Integers are whole numbers, e.g.
+
+1
+12
+18446744073709551616.
+
+;;; Floating point numbers are  always written with a decimal point, e.g. 
+
+5.0
+3.141592653589793
+
+;;; Ratios are numbers consisting of nominator and denominator, e.g., 
+
+1/2
+2/3
+3/5
+")) :X 0.1080000000000001D0 :Y 1.8719997806549072D0 :W 2.556000011920929D0 :H 1.2440000014901154D0 :BOX-STRING "1" :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.0084) :PW-FUNCTION (QUOTE PWGL-COMMENT-BOX) :OPEN-STATE-W 2.556000011920929D0 :OPEN-STATE-H 1.2440000014901154D0) (MAKE-INSTANCE (QUOTE PWGL-COMMENT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-COMMENT-BOX-SUBVIEW) :R 1.0 :G 1.0 :B 1.0 :BOX-STRING "auto-evaluate" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 100 :Y 100 :WIDTH 900 :HEIGHT 840) :VALUE-STRING ";;; Common Lisp automatically simplifies ratios to use the smallest possible denominator, e.g., the ratios
+
+4/6 
+6/9 
+10/15 ; are all simplified to 2/3.
+")) :X 0.12000000149011614D0 :Y 0.5159997791647912D0 :W 2.524000011920929D0 :H 0.3640000014901159D0 :BOX-STRING "1" :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :X-PROPORTIONS (LIST (LIST 1)) :BORDER 0.0084) :PW-FUNCTION (QUOTE PWGL-COMMENT-BOX) :OPEN-STATE-W 2.524000011920929D0 :OPEN-STATE-H 0.3640000014901159D0)) :X 5 :Y 5 :TRANSLY 0.016000598907471284D0 :HITS 1 :WINDOW-DOCUMENTATION "Lisp
+NUMBERS
+
+There are three kinds of numbers that are used most commonly, integers, floating point numbers, and ratios.
+
+Integers are whole numbers, e.g.
+
+1
+12
+18446744073709551616.
+
+Floating point numbers are  always written with a decimal point, e.g. 
+
+5.0
+3.141592653589793.
+
+Ratios are numbers consisting of nominator and denominator, e.g., 
+
+1/2
+2/3
+3/5
+
+Common Lisp automatically simplifies ratios to use the smallest possible denominator, e.g., the ratios
+
+4/6 
+6/9 
+10/15 ; are all simplified to 2/3.
+
+" :X 5 :Y 22 :WIDTH 730 :HEIGHT 530))) (WINDOW-SELECT WIN) WIN)

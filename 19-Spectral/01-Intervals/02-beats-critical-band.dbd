@@ -1,0 +1,25 @@
+:title "Rauhigkeit und Schwankungsstaerke"
+
+:bodytext "Rauhigkeit und Schwankungsstaerke sind Hoerempfindungen, die durch Fluktuationen von Schallsignalen ausgeloest werden. Sie treten zum Beispiel auf, wenn zwei Sinustoene in geringem Frequenzabstand gleichzeitig erklingen. Hierbei aeussert sich die Frequenzdifferenz der Sinustoene als hoerbare Modulation des Klangs."
+
+:bodytext "Die Hoerempfindung des Zusammenklangs haengt von der Frequenzdifferenz der Teiltoene ab. Mit groesser werdendem Abstand durchlaeuft die Empfindung mehrere Bereiche:"
+
+:table
+:columns 2
+"Frequenzdifferenz" "Hoerempfindung"
+"" "0-15 Hz" "Einzelner Ton mit schwankender Amplitude (Schwebung). Bei 4 Hz ist der Eindruck der Schwankung am staerksten."
+"" "15 Hz - 70 Hz" "Ein mit groesserer Frequenzdifferenz zunehmend rauher Ton. Die Rauhigkeitsempfindung ist bei etwa 70 Hz Modulationsfrequenz am staerksten."
+"" "ueber 70 Hz" "Zwei zunehmend getrennte Teiltoene; die Rauhigkeit des Klangs nimmt ab."
+"" "200-300 Hz" "Der Eindruck der Rauhigkeit verschwindet. Die beiden Teiltoene sind vollstaendig getrennt wahrnehmbar."
+
+:bodytext "Die Bereiche sind nicht eindeutig trennbar. Die Hoerempfindungen gehen fliessend ineinander ueber."
+
+:bodytext "Die Empfindung von Rauhigkeit steht im Zusammenhang mit den kritischen Bandbreiten. Rauhigkeit tritt nur auf, solange der Frequenzabstand innerhalb der kritischen Bandbreite liegt. Der Zusammenhang besteht so jedoch nur fuer Traegerfrequenzen im Frequenzbereich unterhalb von ca. 1 Khz. Oberhalb von 2 kHz geht die Obergrenze in einen konstanten Wert von 250-300 Hz ueber."
+
+:figure "Existenzbereich-von-Rauhigk.gif"
+:caption "Existenzbereich von Rauhigkeit und Schwankungsempfindung. CB kritische Bandbreite; a Grenze fuer Schwankungsempfindung; b Grenze fuer Rauhigkeit; c Grenze fuer Aufspaltung in zwei einzelne Toene."
+
+:bodytext "Das Rauhigkeitsempfinden entsteht aufgrund des beschraenkten Frequenzausfloesungsvermoegens der Basilarmembran. Bei geringem Frequenzabstand ueberschneiden sich dort die Erregungsmuster zweier Toene. Wenn der Frequenzabstand groesser wird und man zwei getrennte Toene wahrnimmt, bedeutet dies, das die Toene auf der Basilarmembran zwei unabhaengige Frequenzmaxima hervorrufen."
+
+:bodytext "
+Die Obergrenze von 300 Hz fuer die Rauhigkeitsempfindung sind offenbar eine Konstante des menschlichen Gehoers. Dort scheint die allgemeine Grenze fuer die Wahnehmbarkeit von Schallfluktuationen zu liegen. Der Grund dafuer ist die Traegheit des neuronalen Systems."

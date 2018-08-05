@@ -1,0 +1,27 @@
+"The following two examples outline the structure of ENP-score-notation in both mensural and non-mensural contexts.
+
+The structure of mensurally notated score:
+
+(score
+ (part
+  (voice
+   (measure
+    beat
+    beat)
+   (measure
+    beat
+    beat)
+   )
+  )
+ )
+    
+The structure of non-mensurally notated score:
+
+(score
+ (part
+  (voice
+   chord
+   chord
+   )
+  )
+ )"

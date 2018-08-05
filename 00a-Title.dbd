@@ -1,0 +1,15 @@
+:title "SEM Tutorial"
+
+:bodytext "This Tutorial is a collection of PWGL patches used in classes at the Studio for Electronic Music (SEM), Mozarteum Salzburg, Austria"
+
+:figure "moz-logo.png"
+
+:bodytext "© 2009-2012, Achim Christian Bornhoeft" 
+:link "http://moz.ac.at/sem"
+:protocol :http
+:link-text "Studio for Electronic Music"
+:link "http://moz.ac.at"
+:protocol :http
+:link-text "Mozarteum Salzburg"
+	
+:bodytext "(Special credits are given inside the patches accordingly.)"

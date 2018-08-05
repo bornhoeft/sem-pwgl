@@ -1,0 +1,15 @@
+:title "Pierre Boulez - Structures 1a (1952)"
+
+:bodytext "Link to Wikipedia:"
+
+:link "http://en.wikipedia.org/wiki/xxx"
+:protocol :http
+:link-text "Structures 1a"
+
+:bodytext "The examples refer mostly to the following presentation based on the analysis of this piece by Reginald Smith Brindle in The New Music: The Avant-Garde since 1945, London: Oxford University Press, 1975:"
+
+:link "./boulez-structures-1a.pdf"
+:protocol :file
+:link-text "Pierre Boulez's Structures 1a for Two Pianos"
+
+

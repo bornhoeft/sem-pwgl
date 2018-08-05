@@ -1,0 +1,13 @@
+:bodytext "The user can also define preferences by heuristic rules. These are similar to the ordinary rules except the Lisp-code part of a heuristic rule returns a numerical value instead of a truth value (heuristic rules never reject candidates). This scheme allows the search to sort candidates that are accepted by the ordinary rules. The search tends to favour candidates with high numerical values. For instance a heuristic rule that prefers large intervals can be written as follows:"
+
+:code "(* ?1 ?2 
+  (?if (abs (- ?2 ?1))) 
+  \"prefer large intervals\")" 
+
+:bodytext "Or we can also prefer small intervals:"
+
+:code "(* ?1 ?2 
+  (?if (- (abs (- ?2 ?1))))
+  \"prefer small intervals\")" 
+
+:bodytext "The 'Heuristic' section contains example patches that demonstrate how the user can shape the search result with the help of heuristic rules."

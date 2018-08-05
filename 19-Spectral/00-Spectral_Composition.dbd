@@ -1,0 +1,19 @@
+:title "Spectral Music"
+
+:bodytext "Spectral music (or spectralism) is a musical practice where compositional decisions are often informed by sonographic representations and mathematical analysis of sound spectra. The spectral approach focuses on manipulating the features identified through this analysis, interconnecting them, and transforming them. In this formulation, computer-based sound analysis and representations of audio signals are treated as being analogous to a timbral representation of sound."
+
+:link "http://en.wikipedia.org/wiki/Spectral_music"
+:protocol :http
+:link-text "Spectral music"
+
+:bodytext "The examples in this chapter refer mostly to the following article by Joshua Fineberg in Contemporary Music Review, 2000. Vol. 19, Part 2, p. 81- 113:"
+
+:link "../98-Texts/fineberg-basic-concepts-spectral.pdf"
+:protocol :file
+:link-text "Guide to the Basic Concepts and Techniques of Spectral Music"
+
+:bodytext "Some more informations about spectral composition can be found in this article in The Wire, Issue 237, November 2003:"
+
+:link "../98-Texts/Spectral_Composition.pdf"
+:protocol :file
+:link-text "The Primer: Spectral Composition"

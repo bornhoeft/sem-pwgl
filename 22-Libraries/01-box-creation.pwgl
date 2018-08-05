@@ -1,0 +1,350 @@
+(IN-PACKAGE :CCL)
+;; this patch was saved with PWGL version 1.0 beta RC 18 (0.9.18-201)
+(ASSERT-PATCH-SAVED-VERSION-NOT-NEWER-THAN (QUOTE ((0 9 18) 201)))
+(LET ((WIN (MAKE-INSTANCE (QUOTE PWGL-PW-WINDOW) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-TEXT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-TEXT-SUBVIEW) :BOX-STRING "text" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 48 :Y 34 :WIDTH 573 :HEIGHT 455) :VALUE-STRING "(in-package :ccl)
+
+#|
+================================================================
+                 (A)  simple 'defun' case: 
+================================================================
+all inputs are value-input-boxes with a default value equal to '()'.
+|#
+(defun simple1 (a b c)
+  \"simple defun case\"
+  (+ a b c))
+;to add the box to a patch go to the PWGL 'Lisp function' dialog and type 'simple1'
+
+(defun simple2 (a b c &optional (d 8))
+  \"&optional case\"
+  (list a b c d))
+;to add the box to a patch go to the PWGL 'Lisp function' dialog and type 'simple2'
+
+(defun simple3 (a b c &key (d 8)(e 9))
+  \"&key case\"
+  (list a b c d e))
+;to add the box to a patch go to the PWGL 'Lisp function' dialog and type 'simple3'
+
+(defun simple4 (a b &rest c)
+  \"&rest case\"
+  (list a b c))
+;to add the box to a patch go to the PWGL 'Lisp function' dialog and type 'simple4'
+
+;you can also give all functions as a list in the PWGL 'Lisp function' dialog i.e.:
+;(simple1 simple2 simple3 simple4)" :X-OFFSET -0.028 :Y-OFFSET 0.19600001)) :X 0.24399999999999977D0 :Y 1.4720005397796628D0 :W 1.0040000119209283D0 :H 0.3280000014901163D0 :BOX-STRING "text-box" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.012) :PW-FUNCTION (QUOTE TEXT-BOX) :USER-STRING "(A) simple 'defun' case" :OPEN-STATE-W 1.0040000119209283D0 :OPEN-STATE-H 0.3280000014901163D0) (MAKE-INSTANCE (QUOTE PWGL-TEXT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-TEXT-SUBVIEW) :BOX-STRING "text" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 20 :Y 13 :WIDTH 738 :HEIGHT 548) :VALUE-STRING "(in-package :ccl)
+
+#|
+================================================================
+                 (B) 'PWGLDef' case 
+================================================================
+PWGLDef creates a method and allows to define the input-box types and default
+values for all inputs. Furthermore, the <keyword-args> argument allows to specify
+the layout,color, size, class, etc.
+
+PWGLDef (<name> <args> <documentation> <keyword-args>  &body <body>)
+<name>            name of the method
+<args>            consists of a list of lists, where each sublist is either in the form:
+                  (<symbol> <default value>)
+                 or 
+                  (<symbol> () <input-box definition>)
+                  In the former case the input-type will be a value-input-box (this is the most common input-box).
+                  In the latter case <input-box definition> is either an expression that should return
+                  a valid input-box object (see down the comment concerning input-box constructors),
+                  or a keyword that refers to a library of global predefined input-box type definitions.
+<documentation>   documentation string
+<keyword-args>    a list of keywords that allow to customize the box.
+                  Valid keywords are:
+                  :class  
+                  :r :g :b 
+                   :w :h  :border
+                  :groupings :extension-pattern :x-proportions :y-proportions 
+                  :proportional-coordinates 
+                  :outputs
+<body>            body of the method definition
+
+For more details see the paper 'icmc2003_box-design.pdf'. 
+
+(Comment for PW users: PWGLDef resembles somewhat the old PW macro 'defunp', the main 
+difference is that it creates a method not a function.)
+|#
+
+
+#|
+================================================================
+For instance a box with 3 inputs where: 
+- 2 first inputs are value-input-boxes and have default-values 1 and 2 
+- 3rd input is a menu-box (can be defined as a global menu-box type, this is the preferred way
+  if the menu-list is very long)
+can be defined as follows:
+|#
+
+; EITHER use the global menu-box type definition:
+(add-box-type :yes-maybe-mbox 
+  `(mk-menu-subview :menu-list ,(add-menu-list-keyword :yes-no-list '(\":t\" \":nil\" \":maybe\")) :value 1))
+
+(PWGLDef abc2 ((a 1) (b 2) (c () :yes-maybe-mbox))    ;; <name>  <args> 
+  \"PWGLDef abc2\"                                       ;; <documentation>
+ ()                                                    ;; <keyword-args>
+ (cond ((eq c :maybe) \"maybe\")                         ;; <body>
+       ((eq c :nil) ())
+       (t (+ a b))))
+;to add the box to a patch go to the PWGL 'Lisp function' dialog and type 'abc2'
+
+
+; OR the menubox is a local input (the menu-list is now a list of string/value pairs):
+(PWGLDef abc3 ((a 1) (b 2) (c () (mk-menu-subview :menu-list '((\"t\" 1) ( \"nil\" 2) (\"maybe\" 3)) :value 1)))
+  \"PWGLDef abc3\"
+ (:groupings '(1 1 1) :r 1 :g 0 :b 0  :y-proportions '(1 1 1.5))
+ (cond ((= c 1) \"true case\")
+       ((= c 2) \"fail case\")
+       (t (+ a b))))
+;to add the box to a patch go to the PWGL 'Lisp function' dialog and type 'abc3'
+
+
+; &optional: extends the box with 1 input at a time until limit
+(PWGLDef abc4 ((a 1) (b 2) &optional (c 3) (d 4))
+  \"PWGLDef abc4\"
+  (:groupings '(1 1) :w 0.15)
+  (list a b c d))
+;to add the box to a patch go to the PWGL 'Lisp function' dialog and type 'abc4'
+
+
+; &key: extends the box with 2 inputs (1. key, 2. arg) at a time until limit
+(PWGLDef abc5 ((a 1) (b 2) &key (c 3) (d 4) (e 5))
+  \"PWGLDef abc5\"
+  (:groupings '(1 1) :w 0.45)
+  (list a b c d e))
+;to add the box to a patch go to the PWGL 'Lisp function' dialog and type 'abc5'
+
+
+; &rest extends the box with 1 input at a time without limit
+(PWGLDef abc6 ((a 1) (b 2) &rest (c 3))
+  \"PWGLDef abc6\"
+  (:groupings '(2) :w 0.45)
+  (list a b c))
+;to add the box to a patch go to the PWGL 'Lisp function' dialog and type 'abc6'
+;(abc2 abc3 abc4 abc5 abc6)
+#|
+================================================================
+      Input-box constructors
+================================================================
+Following input-box constructors are available:
+
+*PWGL-subview-constructors*  ->
+
+(mk-chord-subview
+ mk-dialog-box-subview
+ mk-score-subview
+ mk-application-subview
+ mk-slider-subview
+ mk-hierarchical-menu-subview
+ mk-menu-subview
+ mk-value-subview
+ mk-num-subview
+ mk-text-subview
+ mk-2d-subview
+ mk-static-text-subview
+ mk-button-subview
+ mk-update-menu-subview)
+================================================================
+      Predefined input-box type library
+================================================================
+To see all current predefined box-types evaluate followimg:
+
+(maphash #'(lambda (a b) (pprint (list a b))) *PWGL-box-type-library*)
+
+|#
+
+
+
+" :X-OFFSET -0.016 :Y-OFFSET 0.20400001)) :X 1.440000001490116D0 :Y 1.4720005397796628D0 :W 1.0600000119209288D0 :H 0.3280000014901163D0 :BOX-STRING "text-box" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.012) :PW-FUNCTION (QUOTE TEXT-BOX) :USER-STRING " (B) 'PWGLDef' case" :OPEN-STATE-W 1.0600000119209288D0 :OPEN-STATE-H 0.3280000014901163D0) (MAKE-INSTANCE (QUOTE PWGL-TEXT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-TEXT-SUBVIEW) :BOX-STRING "text" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 19 :Y 26 :WIDTH 920 :HEIGHT 564) :VALUE-STRING "(in-package :ccl)
+
+#|
+================================================================
+              (D)  Box definition, complex version 
+================================================================
+Boxes with arbitrary layouts are typically defined in 4 steps:
+(1) define a subclass of 'PWGL-box'
+(2) define a 'patch-value' method for the new class
+(3) define a  new generic method
+(4) define a  'mk-box-function' method specialized to the symbol defined in 'defgeneric'
+|#
+;(1)
+(defclass PWGL-box-tutti (PWGL-box) ())
+
+;(2)
+(defmethod patch-value ((self PWGL-box-tutti) outbox)
+  (declare (ignore outbox))
+  (print \"TUTTI\"))
+
+;(3)
+(defgeneric mytutti ()  (:documentation \"Tutti\"))
+
+;(4)
+(defmethod mk-box-function ((self (eql 'mytutti)) x y)
+  (mk-PW-box   'PWGL-box-tutti 'mytutti \"TUTTI\" x y 0.6 0.5
+               (list 
+                (mk-slider-subview :minval -50 :maxval 50 :grid t)
+                (mk-static-text-subview :box-string \"\")
+                (mk-slider-subview :minval -50 :maxval 50 :grid t) 
+                
+                (mk-static-text-subview :box-string \"\")
+                
+                (mk-slider-subview :minval 0 :maxval 500) 
+                (mk-static-text-subview :box-string \"\")
+                (mk-slider-subview :minval 0 :maxval 500) 
+                )
+               :groupings '(3 1 3)
+               :x-proportions '((2 5 1) (1) (1 5 2))
+               :y-proportions '(3 1 3) 
+               :r 0.5 :g 0.6 :b 0.6))
+;to add the box to a patch go to the PWGL 'Lisp function' dialog and type 'mytutti'
+
+;(1)
+(defclass PWGL-box-tutti2 (PWGL-box) ())
+
+;(2)
+(defmethod patch-value ((self PWGL-box-tutti2) outbox)
+  (declare (ignore outbox))
+  (print \"TUTTI2\"))
+
+;(3)
+(defgeneric mytutti2 ()  (:documentation \"Tutti2\"))
+
+;(4)
+(defmethod mk-box-function ((self (eql 'mytutti2)) x y)
+  (mk-PW-box 'PWGL-box-tutti2 'mytutti2 \"test\" x y 1.0 0.9
+             (list (mk-static-text-subview :box-string \"text\" :font-scaler 0.5)
+                   (mk-slider-subview :value 100 :minval 0 :maxval 100)
+                     
+                   (mk-2D-subview  :doc-string \"\" 
+                                   :application-window (mk-2D-application-window))
+                   (mk-chord-subview
+                    :doc-string \"\" :r 1.0 :g 1.0 :b 1.0
+                    :application-window (let ((sc #+mac 2.3 #+win32 2.7  #+linux 2.3))
+                                          (make-instance 'chord-editor-window 
+                                                         :view-size (make-point 350 170)
+                                                         :scalefx sc :scalefy sc
+                                                         :translx 18.0 :transly #+mac -8.0 #+win32 -8.0 #+linux -8.0
+                                                         :chord (make-instance 'chord :notes (list (make-instance 'note :midi 60))))))
+                   (mk-slider-subview :value 100 :minval 0 :maxval 100 :box-string \"1\") 
+                   (mk-slider-subview :value 100 :minval 0 :maxval 100 :box-string \"2\")
+                   (mk-slider-subview :value 100 :minval 0 :maxval 100 :box-string \"3\") 
+                   (mk-slider-subview :value 100 :minval 0 :maxval 100 :box-string \"4\")
+                     
+                   (mk-score-subview
+                    :doc-string \"\" :r 1.0 :g 1.0 :b 1.0
+                    :application-window (make-enp-application-window '(((()))))) 
+                    
+                   (mk-slider-subview :value 100 :minval 0 :maxval 100 :box-string \"xx\" :horizontal t) 
+                     
+                   )                          
+             :proportional-coordinates '((1/12 1/12   4/12 1/9)  (3/12 1/12   1/6 1/6)
+                                         (6/12 1/12   2/9 4/10)
+                                         (9/12 1/12   2/9 4/10)
+                                         (1/12 4/12   1/20 1/6) (2/12 4/12   1/20 1/6) (3/12 4/12   1/20 1/6)  (4/12 4/12   1/20 1/6) 
+                                         (1/12 7/12   7/9 4/15)
+                                         (1/12 11/12   5/6 1/20))
+             ))
+;to add the box to a patch go to the PWGL 'Lisp function' dialog and type 'mytutti2'
+;(mytutti mytutti2)
+
+
+" :X-OFFSET -0.048 :Y-OFFSET 0.19600001)) :X 1.440000001490116D0 :Y 0.8680005353093154D0 :W 1.0720000119209288D0 :H 0.3280000014901163D0 :BOX-STRING "text-box" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.012) :PW-FUNCTION (QUOTE TEXT-BOX) :USER-STRING "(D) Box definition, complex version" :OPEN-STATE-W 1.0720000119209288D0 :OPEN-STATE-H 0.3280000014901163D0) (MAKE-INSTANCE (QUOTE PWGL-TEXT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-TEXT-SUBVIEW) :BOX-STRING "text" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 41 :Y 21 :WIDTH 742 :HEIGHT 489) :VALUE-STRING "(in-package :ccl)
+
+#|
+================================================================
+              (C)  Extended case with layout options  
+================================================================
+Use of :groupings and :extension-pattern keywords in PWGLDef 
+expressions with &optional or &rest. 
+
+Note that the :groupings keyword refers only to the required 
+arguments. The optional argument behaviour can be controlled 
+using the :extension-pattern keyword.
+|#
+;================================================================
+;The following default &optional extension pattern:
+(PWGLDef foo0 ((x 0) &optional (y 1) (b 88))
+    \"\"
+    ()
+  ())
+
+;can be controlled in more detail using the :extension-pattern keyword:
+(PWGLDef foo1 ((x 0) &optional (y 1) (b 88))
+    \"\"
+    (:groupings '(1) :extension-pattern '(2))
+  ())
+
+;Here we control the required arguments layout with '(2 1). 
+;The &optional arguments are in turn extended with a pattern '(2 3):
+(PWGLDef foo2 ((x1 0)(x2 0)(x3 0) &optional (y 1) (b 88) (e 1) (r 88)(k 88))
+    \"\"
+    (:groupings '(2 1) :extension-pattern '(2 3))
+  ())
+
+;================================================================
+;The following default &rest extension pattern:
+(PWGLDef blah0 ((x 0) &rest (y 1))
+    \"\"
+    ()
+  (list x y))
+
+; can be controlled in more detail using the :extension-pattern keyword:
+(PWGLDef blah1 ((x 0) &rest (y 1))
+    \"\"
+    (:extension-pattern '(1 2 1 2) )
+  (list x y))
+
+;Here we control the required arguments layout with '(1 1). 
+;The &rest arguments are in turn extended with a pattern '(1 5 1 7 1):
+(PWGLDef blah2 ((x1 0)(x2 0) &rest (y 1))
+    \"\"
+    (:groupings '(1 1) :extension-pattern '(1 5 1 7 1))
+  ())
+
+
+#|
+================================================================
+The following examples use also other layout related keywords:
+   y-proportions :x-proportions
+  :proportional-coordinates 
+  :w :h 
+  :r :g :b
+|#
+(PWGLDef glorp1 ((x 0) &optional (y 1) (b 88))
+    \"\"
+    (:groupings '(1) :extension-pattern '(2) :y-proportions '(1 2) :x-proportions '((1) (1 2)))
+  ())
+
+(PWGLDef glorp2 ((x1 0)(x2 0)(x3 0) &optional (y 1) (b 88) (e 1) (r 88)(k 88))
+    \"\"
+    (:groupings '(2 1) :extension-pattern '(2 3) 
+     :y-proportions '(1 2 1 3) :x-proportions '((1 0.3) (1) (2 3) ((:fix 0.1) 2 (:fix 0.1))))
+  ())
+
+(PWGLDef glorp3 ((x1 0)(x2 1)(x3 2) (y 3) (b 4) (e 5) (r 6)(h 7) (j 8)(k 9))
+    \"\"
+    (:proportional-coordinates '((1/12 1/12   4/12 1/9)  (3/12 1/12   1/6 1/6)
+                                 (6/12 1/12   2/9 4/10)
+                                 (9/12 1/12   2/9 4/10)
+                                 (1/12 4/12   1/20 1/6) (2/12 4/12   1/20 1/6) (3/12 4/12   1/20 1/6)  (4/12 4/12   1/20 1/6) 
+                                 (1/12 7/12   7/9 4/15)
+                                 (1/12 11/12   5/6 1/20)) 
+     :w 1.7 :h 0.6
+     :b 1.0)
+  ())
+
+;(foo0 foo1 foo2 blah0 blah1 blah2 glorp1 glorp2 glorp3)" :X-OFFSET -0.124000006 :Y-OFFSET 0.20400001)) :X 0.24399999999999977D0 :Y 0.8680005353093154D0 :W 1.0720000119209288D0 :H 0.3280000014901163D0 :BOX-STRING "text-box" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.012) :PW-FUNCTION (QUOTE TEXT-BOX) :USER-STRING "(C) Extended case with layout options" :OPEN-STATE-W 1.0720000119209288D0 :OPEN-STATE-H 0.3280000014901163D0)) :X 5 :Y 5 :TRANSLY 0.11599947166442872D0 :WINDOW-DOCUMENTATION "This patch gives information of how to create your own boxes in PWGL.
+
+The patch contains four text-boxes that contain box definitions with increasing complexity:
+(A) simple 'defun' case
+(B) 'PWGLDef' case
+(C) Extended case with layout options
+(D) Box definition, complex version
+
+Open a text box and compile it. After this choose a PWGL window and enter the box names in the 'Lisp function' dialog.
+
+Note: the paper 'icmc2003_box-design.pdf' dealing with PWGL-boxes is found in the 'Documentation' entry in the 'Overview' section of this tutorial.
+
+The 'documentation/programming/box examples' folder gives some more complex examples that demonstrate how input boxes can interact within a PWGL-box. 
+" :X 5 :Y 22 :WIDTH 730 :HEIGHT 530))) (WINDOW-SELECT WIN) WIN)

@@ -1,0 +1,27 @@
+:section-style :empty
+
+:bodytext "A PWGL synth patch is a is a graph structure consisting of boxes and connections. Boxes, in turn, can be categorized in two main box types from a synthesis point of view."
+
+:section-start "Synth boxes"
+:bodytext "The first box type consists of ordinary PWGL boxes. These boxes can be found at the leaves of a synthesis patch and they are typically evaluated once before the synthesis patch is run. A special case of this category are sliders which can dynamically change the current value while the synthesis is running. 
+
+The second box type consists of boxes, marked with an 'S', that represent synthesis boxes that are used for the actual sample calculation. 'S' boxes support vectored inputs and outputs. Mono signals are only a special case where the vector length is equal to 1.
+
+A synthesis patch always contains a special 'S'  box, called 'synth-box', at the root of the graph, which represents the output of the sample calculation. This output can either be sent to audio converters in real-time, or the output can be written to a file."
+:section-end
+
+:section-start "Multichannel signals"
+:bodytext "Several tutorial sections (for example 'Vector' and 'Copy-synth-patch') demonstrate how multichannel signals are represented in our system. The patches give a visual clue that helps to distinguish between mono signals (vector length is equal to 1) and vectored signals. The connections between vectored boxes are drawn using a thicker line width and a stipple pattern that contains holes. The vector length is specified by the inputs at the leaves (i.e. inputs which are not connected to a 'S' box) of the patch. These inputs can be Lisp expressions (typically lists) or slider-banks which allow a separate real-time control of each individual vector element. If the lengths at the inputs differ, then the shortest vector determines the current vector length."
+:section-end
+
+:section-start "Developer tools"
+:bodytext "Two programming tools allow the user to extend PWGLSynth with new C++ modules, Extension Developer Kit and Visual Patch Compiler. In the first one the user operates with ordinary textual C++ programming. The system also allows to reuse in the code any existing synthesis modules."
+
+"The Extension Developer Kit plus its documentation can be found in:"
+
+:link #.(ccl::pwgl-location :documentation "programming/")
+:link-text "documentation/programming/PWGLSynthC++API.zip"
+:protocol :file
+
+:bodytext "In the second tool, Visual Patch Compiler, the user first defines visually a synthesis patch with the help our abstraction scheme. The abstraction is then automatically translated to a binary file that represents the new synthesis box. An example patch is given in this tutorial."
+:section-end

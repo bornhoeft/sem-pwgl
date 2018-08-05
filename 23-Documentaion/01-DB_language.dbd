@@ -1,0 +1,52 @@
+:section-start "DBL language"
+
+:bodytext
+"DBL is a small language that allows to describe the document structure in a simple and straightforward way. Currently the language is very modest containing only a handful of definitions. The document is described as single column text from the top down. The different elements (e.g., title, sections, figures, etc.) are described as keywords. The element data, in turn, depends on the element type but is usually a lisp string. If the user at some point omits the element type the last element type is used."
+
+"The concept is very simple: when encountering a file of type .dbd, the system invokes an interpreter. The file is then parsed by the interpreter, which in turn, automatically constructs the final document. The following list enumerates the current set of elements:"
+
+:items
+
+- ":bodytext <STRING>*. Defines body text. Takes any number of strings. Each new string defines a new paragraph."
+
+- ":important <STRING>. Creates a piece of text that is supposed to stand out."
+
+- ":code <STRING>. Displays mono-spaced text."
+
+- ":comment <STRING>. Can be used to insert comments inside DBL documents."
+
+- ":items creates a numbered of alphabetized list. The elements in the list are described as a pair of a hyphen (-) and <STRING>. Second level lists can be defined using a double hyphen (--)"
+
+- ":inline-items creates a list inside the paragraph without new lines."
+
+- ":figure <STRING>, where <STRING> is a filename. Can be used to place static figures in the document."
+-- ":caption <STRING>, creates a caption for a figure and automatically updates the figure number. The figure can be referenced in the text by enclosing the filename inside hash marks, i.e., #<STRING>#."
+
+- ":link <STRING>."
+-- ":protocol"
+-- ":link-text"
+
+- ":reference"
+
+- ":paragraph"
+
+- ":section-start <STRING> and :section-end can be used to insert subheadings in the text. :section-start/end keywords can be nested."
+
+- ":subtitle <STRING>,  subtitle for the page."
+
+- ":table <STRING>"
+-- ":columns <NUMBER>. There exists shortcuts for :tableN, where N can be a number between 1 and 8. In this case :columns need not to be defined."
+-- ":table-elements <LISP EXPRESSION>. <LISP EXPRESSION> should return a list of strings."
+
+- ":title <STRING>, title for the page."
+
+:bodytext
+"The formal definition of the DBL language is given here:"
+:link "DBL.g"
+:protocol :file
+:location "PWGL-code/pwgl-components/dbl/"
+
+:important
+"See vocabulary.dbd for examples"
+
+:section-end

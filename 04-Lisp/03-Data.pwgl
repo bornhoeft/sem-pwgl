@@ -1,0 +1,30 @@
+(IN-PACKAGE :CCL)
+;; this patch was saved with PWGL version 1.0 beta RC 18 (0.9.18-201)
+(ASSERT-PATCH-SAVED-VERSION-NOT-NEWER-THAN (QUOTE ((0 9 18) 201)))
+(LET ((WIN (MAKE-INSTANCE (QUOTE PWGL-PW-WINDOW) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-COMMENT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-COMMENT-BOX-SUBVIEW) :R 1.0 :G 1.0 :B 1.0 :BOX-STRING "auto-evaluate" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 548 :Y 106 :WIDTH 1020 :HEIGHT 761) :VALUE-STRING "#|
+DATA
+
+The term data means information, such as numbers, words, or lists of things. 
+To make a list data you need to use a special form called Quote. Quote returns 
+its argument without evaluating it.
+ 
+Without the quote, Lisp interpretes expressions as function calls (as described 
+above). The special form quote tells Lisp not to evaluate the form but to treat 
+it as a literal (i.e., data). There is a shorthand for quote function that is 
+used by Lisp programmers almost without exceptions and that is  an apostrophe ('),
+|#
+
+'(a b c d e) 
+; is the same as 
+(quote (a b c d e))
+
+#|
+IMPORTANT: \"It is not necessary to quote so called self-evaluating objects such 
+as numbers, T, or NIL!\"
+|#" :XSCALE-FC 0.96581197 :YSCALE-FC 0.96581197)) :X 0.0455326095361106D0 :Y 1.4880808100230052D0 :W 1.9057539571871767D0 :H 1.2787039179823015D0 :BOX-STRING "1" :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :X-PROPORTIONS (LIST (LIST 1)) :BORDER 0.0084) :PW-FUNCTION (QUOTE PWGL-COMMENT-BOX) :OPEN-STATE-W 1.9057539571871767D0 :OPEN-STATE-H 1.2787039179823015D0) (MAKE-INSTANCE (QUOTE PWGL-CODE-BOX) :R 0.0 :G 0.0 :B 1.0 :X 2.1772199806352277D0 :Y 0.6666807686773582D0 :W 0.25121665393280557D0 :H 0.021195834505141953D0 :BOX-STRING "quoted list" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :BORDER 0.012) :PW-FUNCTION (QUOTE CODE-BOX) :OPEN-STATE-W 0.25121665393280557D0 :OPEN-STATE-H 0.021195834505141953D0 :TEXT "'(a b c d)") (MAKE-INSTANCE (QUOTE PWGL-COMMENT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-COMMENT-BOX-SUBVIEW) :R 1.0 :G 1.0 :B 1.0 :BOX-STRING "auto-evaluate" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 100 :Y 100 :WIDTH 500 :HEIGHT 600) :VALUE-STRING "Double click on the pwgl-comment-box below:" :XSCALE-FC 1.1475229 :YSCALE-FC 1.1475229)) :X 0.09890831255206711D0 :Y 1.7766405700211918D0 :W 1.327124796115466D0 :H 0.1114124990922778D0 :BOX-STRING "1" :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.0084) :PW-FUNCTION (QUOTE PWGL-COMMENT-BOX) :OPEN-STATE-W 1.327124796115466D0 :OPEN-STATE-H 0.1114124990922778D0) (MAKE-INSTANCE (QUOTE PWGL-COMMENT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-COMMENT-BOX-SUBVIEW) :R 1.0 :G 1.0 :B 1.0 :BOX-STRING "auto-evaluate" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 100 :Y 100 :WIDTH 500 :HEIGHT 600) :VALUE-STRING "Quoted list in a code-box" :XSCALE-FC 1.031201 :YSCALE-FC 1.031201)) :X 2.013495432785865D0 :Y 0.8815699022471562D0 :W 0.6347666082510002D0 :H 0.08858750388795445D0 :BOX-STRING "1" :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.0084) :PW-FUNCTION (QUOTE PWGL-COMMENT-BOX) :OPEN-STATE-W 0.6347666082510002D0 :OPEN-STATE-H 0.08858750388795445D0)) :X 5 :Y 5 :SCALEFX 0.52573944 :SCALEFY 0.52573944 :TRANSLY 0.06838022971294472D0 :WINDOW-DOCUMENTATION "Lisp DATA
+
+The term data means information, such as numbers, words, or lists of things. To make a list data you need to use a special form called Quote. Quote returns its argument without evaluating it.
+
+Without the quote, Lisp interpretes expressions as function calls (as described above). The special form quote tells Lisp not to evaluate the form but to treat it as a literal (i.e., data). There is a shorthand for quote function that is used by Lisp programmers almost without exceptions and that is  an apostrophe ('), e.g., '(a b c d e) is the same as (quote (a b c d e)). 
+
+IMPORTANT: \"It is not necessary to quote so called self-evaluating objects such as numbers, T, or NIL!" :X 5 :Y 22 :WIDTH 730 :HEIGHT 530))) (WINDOW-SELECT WIN) WIN)

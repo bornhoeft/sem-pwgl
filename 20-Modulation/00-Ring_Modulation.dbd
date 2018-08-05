@@ -1,0 +1,12 @@
+:title "Ring Modulation (RM)"
+
+:bodytext "The Ring Modulation is a special case of amplitude modulation (AM) and its name comes from the topology of the electronic circuit used in the analog domain to produce this effect (i.e. a 'ring' of diodes). 
+
+As in any modulation process, in ring modulation we need two signals called the carrier (C) and the modulator (M). In the case of ring modulation these two signals (C and M) must be bi-polar, i.e. symmetric around the x axis (they must have both positive and negative y values). In the digital domain ring modulation is implemented by multiplying carrier and modulator (RingMod = C*M). Depending on the frequency of the modulator we may obtain different output signals. If the M is below 20Hz we hear that the amplitude of C varies at the rate of M (tremolo effect). On the other hand, if M is in the audio range (20Hz < M < 20KHz), for each sinusoidal component of C we get a pair of sidebands in the output spectrum. Given two sine-waves C (400Hz) and M (100Hz) if we ring modulate them we get an output spectrum consisting of two components at C+M=500Hz and C-M=300Hz."
+
+
+:bodytext "Some more informations about spectral composition can be found in this article by Scott Lehman:"
+
+:link "./Ring-Modulation.pdf"
+:protocol :file
+:link-text "Ring Modulation"

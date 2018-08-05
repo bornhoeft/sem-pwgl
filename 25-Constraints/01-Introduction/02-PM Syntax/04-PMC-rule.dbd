@@ -1,0 +1,25 @@
+:bodytext "Ordinary PMC rules always return a truth value (i.e. in Lisp terminology either 'T' or '()'):"
+
+:code "(* ?1 ?2                   ;; PM-part
+  (?if (/= ?1 ?2))         ;; Lisp-code part
+  \"No equal adjacent values\")
+
+(* ?1 ?2 
+   (?if (member (- ?2 ?1) '(5 6)))
+   \"Interval rule\")
+
+(* ?1 
+  (?if (not (member ?1 (rest rl)))) 
+  \"No duplicates\")
+
+(* ?1 
+   (?if (not (member (mod ?1 12) (rest rl) :key #'mod12)))
+   \"No pitch class duplicates\")
+
+(* 
+   (?if (apply #'< l)) 
+  \"Result in ascending order\")
+
+(i1 i2 i4 i8 
+  (?if (eq-SC? '(4-1) i1 i2 i4 i8)) 
+  \"index rule\")" 

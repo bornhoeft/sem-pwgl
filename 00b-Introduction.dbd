@@ -1,0 +1,14 @@
+:bodytext "PWGL is an OpenGL based visual programming language specialized in computer aided composition and sound synthesis. PWGL is a successor of PatchWork (PW) and aims to develop and improve many of the useful concepts behind PW."
+
+"PWGL provides a direct access to its base languages, Common Lisp and CLOS. Besides a library of basic boxes (arithmetic, lisp functions, list handling, loops, abstractions, conversion, etc.), PWGL contains several large scale applications, such as:"
+
+:items
+
+- "Expressive Notation Package, ENP (represented in PWGL by Score-editor and Chord-editor)"
+- "2D-editor"
+- "PWGLSynth"
+- "Constraints"
+
+:bodytext "This Help Viewer contains some basic information and several example patches demonstrating PWGL. For more information see the entry 'Overview/Tutorials'."
+
+"PWGL is distributed as freeware. Currently, it runs under Mac OS X (Universal) and Windows XP operating systems. It is downloadable from our web page (www.siba.fi/PWGL). PWGL is distributed in two different configurations: as a standalone application, called 'PWGL-application', that is targeted mainly to end users, and as a developers version, 'PWGL-binaries', that requires the LispWorks 5.0 programming environment (www.lispworks.com). This version will be made available as a pre-compiled module that is loaded on top of LispWorks."

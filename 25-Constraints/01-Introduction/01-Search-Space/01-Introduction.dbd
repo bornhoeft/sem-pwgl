@@ -1,0 +1,26 @@
+:section-style :empty
+
+:bodytext "When using a procedural programming language, such as C or Pascal, or a functional language, like Lisp, typically the user has to solve a problem in a stepwise manner.  In many cases this approach is an adequate one, but for many types of problem it may lead to programs that are difficult to design or understand.
+
+Descriptive languages, such as Prolog, offer an alternative way to look at this problem: instead of trying to solve a problem step-by-step, the user describes a possible result with the help of a set of rules. It is then up to the language to find solutions that are coherent with the descriptions. This approach is probably more natural for individuals with a musical background. A typical music-theoretical writing offers a discussion on some properties of some pieces of music, not a step-by-step description of how those pieces were made.
+
+PWGLConstraints (Laurson 1996, Laurson and Kuuskankare 2005) can be thought of as a descriptive language. PWGLConstraints is written in Common Lisp and CLOS. When using it we do not formulate stepwise algorithms, but define a search-space and produce systematically potential results from it. Typically we are not interested in all possible results, but filter (or, rather, constrain) these with the help of rules describing an acceptable solution."
+
+:section-start "Main components"
+:bodytext "The two main components of our constraint-based system are:"
+
+:items
+- "PMC"
+- "Score-PMC"
+
+:bodytext "There are 2 articles related to the constraint syntax:"
+
+:link #.(ccl::pwgl-location :publications "DissLaursonCH51.pdf")
+:protocol :file
+:link-text "(1) Laurson: Dissertation/Chapter 51"
+
+:link #.(ccl::pwgl-location :publications "Ext-Syntax-Accessors-Jim05.pdf")
+:protocol :file
+:link-text "(2) Extensible Constraint Syntax Through Score Accessors"
+
+:section-end

@@ -1,0 +1,343 @@
+(IN-PACKAGE :CCL)
+;; this patch was saved with PWGL version 1.0 beta RC 17 (0.9.17-170)
+(ASSERT-PATCH-SAVED-VERSION-NOT-NEWER-THAN (QUOTE ((0 9 17) 170)))
+(LET ((WIN (MAKE-INSTANCE (QUOTE PWGL-PW-WINDOW) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-LISP-CODE-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-TEXT-SUBVIEW) :R 1.0 :G 1.0 :B 1.0 :BOX-STRING "auto-evaluate" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 76 :Y 11 :WIDTH 1149 :HEIGHT 841) :VALUE-STRING "(in-package :cl-user)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;
+;;; File:             multi-loops
+;;;
+;;; Version:          1.0
+;;;
+;;; Project:          loop algorithms for Non-Real Time Systems
+;;;
+;;; Purpose:          Attempts to show a more interesting use of loops as well
+;;;                   as an unpredictable though formally repeatable sequence of
+;;;                   events.  Looping starts at various user-defined points in
+;;;                   a sound file; the algorithm moves gradually from one
+;;;                   point to another by 'folding in' the next loop according
+;;;                   to a fibonacci-based transition structure.  We loop for
+;;;                   the duration of a beat in a user-specified tempo but we
+;;;                   occasionally throw in 'maverick' loops that are 1/2 or
+;;;                   1/4 of a beat.
+;;;
+;;; Author:           Michael Edwards: m@michael-edwards.org
+;;;
+;;; Creation date:    25th January 2010
+;;;
+;;; $$ Last modified: 19:22:20 Mon Mar  8 2010 GMT
+;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; We introduce the concept of 'maverick' (unpredictable) rhythms: instead of
+;;; just playing one-beat loops, we occasionally throw in 1/2 or 1/4 beat
+;;; loops.  The frequency of these can be expressed in a list (<intervals> in
+;;; the structure below.  This list can have as many elements we need and will
+;;; be repeated circularly ad infinitum.  We need a custom data type or
+;;; structure to hold the data that can accomplish this, hence defstruct, as
+;;; well as a function (below) that will tell us if we're on a 'maverick' event
+;;; or not.  
+;;; 
+;;; <length> is the length of the intervals list (so we only calculate this
+;;; once) 
+;;; <triggered> is the count of how many times we've triggered a 'maverick'
+;;; <count> is our internal counter of how many times we've queried our
+;;; maverick
+;;; <next> is our internal record of which count number will trigger the next
+;;; maverick.
+ 
+(defstruct maverick intervals length triggered count next)
+
+;;; Returns a maverick instance with data initialised from the intervals at
+;;; which the mavericks should occur.
+;;; <intervals> is a list of integers; it's the only required data as the rest
+;;; are initialised when this is passed.
+
+(defun init-maverick (intervals)
+  (make-maverick :intervals intervals :length (length intervals) :triggered 0
+                 :count -1
+                 ;; <next> is the next count at which we'll trigger a maverick
+                 :next (1- (first intervals))))
+
+;;; Return t or nil depending on whether this event count triggers a 'maverick'
+;;; or not.
+;;; <count> is the current event count so that we can find out whether to throw
+;;; a maverick or not 
+;;; E.g.:
+;;; (loop with m = (init-maverick '(8 4)) for i below 30 
+;;;       collect (do-maverick i m)) -->
+;;; (NIL NIL NIL NIL NIL NIL NIL T NIL NIL NIL T NIL NIL NIL NIL NIL NIL NIL 
+;;; T NIL NIL NIL T NIL NIL NIL NIL NIL NIL)
+
+(defun do-maverick (maverick)
+  (incf (maverick-count maverick)) ;; hence count inits to -1
+  (if (= (maverick-count maverick) (maverick-next maverick))
+      (progn
+        ;; update the next occurrence
+        (setf (maverick-next maverick) 
+              ;; we keep track of how many mavericks we've triggered; use
+              ;; this here to make sure we loop through the intervals list
+              ;; continuously (using mod to create legal list references). 
+              (+ (maverick-count maverick)
+                 (nth (mod (incf (maverick-triggered maverick))
+                           (maverick-length maverick))
+                      (maverick-intervals maverick))))
+        t)
+      nil))
+
+;;; <entry-points> are the times (in seconds) at where we should start our loop
+;;; in <input-sndfile>
+(defun multi-loops (entry-points input-sndfile tempo
+                    &key
+                    (output \"multi-loops.wav\")
+                    (srate 44100)
+                    (channels 2)
+                    ;; we're generally looping over a beat's duration but every
+                    ;; so often we'll do a half or quarter beat loop.  These
+                    ;; lists specify the frequency of such (so e.g. every 21
+                    ;; then every 13 then every 21 again etc.).  They're
+                    ;; independent of each other
+                    (half-beat-mavericks '(13 8))
+                    (quarter-beat-mavericks '(34 21))
+                    ;; we swap gradually from the first entry-point to the
+                    ;; next. We use a fibonacci algorithm to do this, the
+                    ;; length of which will determine how quickly the
+                    ;; transition will take place NB this doesn't have to be a
+                    ;; fibonacci number by any means
+                    (transition-length 34))
+  ;; call the function that does all the actual work
+  (let ((loop-data (multi-loops-aux entry-points tempo half-beat-mavericks
+                                    quarter-beat-mavericks transition-length))
+        (time 0.0))
+    (with-sound (:output output :srate srate :channels channels)
+      ;; the loop data generated by the aux function is a list of 2-element
+      ;; lists: input-file start time and duration
+      (loop for ld in loop-data 
+           for start = (first ld)
+           for dur = (second ld)
+         do
+           (samp1 input-sndfile time 
+                  :duration dur
+                  :start start
+                  :amp-env '(0 0 3 1 97 1 100 0))
+           (incf time dur)))))
+
+;;; This auxiliary function does the actual work.  
+(defun multi-loops-aux (entry-points tempo half-beat-mavericks
+                        quarter-beat-mavericks transition-length)
+  ;; <fibtrans> is a list of 1s and 0s that indicate the transition from one
+  ;; entry to point to another
+  (let* ((fibtrans (fibonacci-transition transition-length))
+         ;; our maverick rhythms
+         (hbm (init-maverick half-beat-mavericks))
+         (qbm (init-maverick quarter-beat-mavericks))
+         (beat-dur (/ 60.0 tempo))
+         (half-dur (/ beat-dur 2))
+         (quarter-dur (/ beat-dur 4)))
+    ;; We pick out the entry points in pairs 1,2->2,3->3,4...
+    ;; this double loop appends one two-element list after the other, each
+    ;; being the input file start time and the duration
+    (loop for ep1 in entry-points and ep2 in (rest entry-points) 
+       with eplast = -1 with mavdur
+       appending
+       ;; so we'll always have <transition-length> loops with this pair
+       (loop for ep in fibtrans ;; always 1 or 0
+          ;; find out whether this event is a maverick
+          for hm = (do-maverick hbm)
+          for qm = (do-maverick qbm)
+          do
+          ;; only change duration back to a full beat if we've changed entry
+          ;; point i.e. hold the maverick duration until the next loop--we'll
+          ;; get a sequence of 1/2 or 1/4 beat rhythms then.
+          (unless (= ep eplast)
+            (setf mavdur nil))
+          (setf mavdur (cond (qm quarter-dur)
+                             ;; so if qm and hm coincide we preference qm (as
+                             ;; it's probably rarer) 
+                             (hm half-dur)) ;; nil if neither true
+                ;; hang onto our last entry-point for comparison next time
+                ;; through 
+                eplast ep)
+          ;; so a 0 in our fibonacci-transition indicates the first entry
+          ;; point, a 1 the second 
+          collect (list (if (zerop ep)
+                            ep1
+                            ep2)
+                        ;; mavdur will be nil only if we just changed entry
+                        ;; point and we are not on a maverick event.
+                        (if mavdur
+                            mavdur
+                            beat-dur))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+#|
+
+Some tests.
+
+(multi-loops '(0 .506 .782 1.217 1.459 1.697) \"feelin.beg.wav\" 300)
+
+;; This moves from structure to synthesis
+(multi-loops '(0 .506 .782 1.217 1.459 1.697) \"feelin.beg.wav\" 1000
+             :output \"multi-loops2.wav\" :transition-length 130)
+
+|#
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; Helper functions.  Don't worry if you don't understand these completely,
+;;; just feel free to use them.
+
+;;; fibonacci-transition-aux1 gradually decreases item1 and increases item2,
+;;; this does the same but continues to increase item2 until it completely
+;;; dominates e.g.
+;;; (fibonacci-transition 35 0 1) ->
+;;; (0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 1 0 1 1 1 1 1)
+(defun fibonacci-transition (num-items &optional
+                                       (item1 0)
+                                       (item2 1))
+  ;; just some sanity checks
+  (unless item1
+    (setf item1 0))
+  (unless item2
+    (setf item2 1))
+  ;; we use the aux1 function to first move towards more of item2, but then
+  ;; again for less of item1.  The point at which this shift occurs is at the
+  ;; golden section (where else?).
+  (let* ((left-num (round (* num-items .618)))
+         (right-num (- num-items left-num))
+         ;; get the two transitions.
+         (left (fibonacci-transition-aux1 left-num item1 item2))
+         ;; this one will be reversed
+         (right (fibonacci-transition-aux1 right-num item2 item1)))
+    ;; avoid two item1s at the crossover. we use equal as it can handle number
+    ;; and symbol comparison
+    (when (equal (first (last right))
+                 item1)
+      ;; butlast returns it's argument minus the last element
+      ;; e.g. (butlast '(1 2 3 4)) -> (1 2 3)
+      (setf right (butlast right))
+      (push item2 right))
+    ;; append the two lists and return.  we can use nreverse (which is more
+    ;; efficient) rather than reverse as we won't need the original version of
+    ;; result
+    (append left (nreverse right))))
+
+
+;;; Say you want a transition between two repeating states over a period of x
+;;; repetitions; this gives you a gradual break in of the second state using
+;;; fibinacci relationships.
+;;; <item1> is the start item, <item2> the item we want to transition towards
+;;; e.g. (fibonacci-transition-aux1 21 0 1) ->
+;;; (0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 1 0 1 1)   
+(defun fibonacci-transition-aux1 (num-items &optional
+                                  (item1 0)
+                                  (item2 1))
+  ;; local function: usually done with flet but you can't call flet functions
+  ;; recursively...
+  (labels ((ftar (num) 
+             ;; lisp functions can return more than one value (e.g. (floor
+             ;; 3.24) usually you will only want the first value (as in the
+             ;; case of floor) but we can get them all using
+             ;; multiple-value-bind and friends.
+             (multiple-value-bind
+                   (series sum)
+                 ;; returns a list of descending fib numbers and their sum--this
+                 ;; will be < num-items
+                 (fibonacci-start-at-2 num)
+               (let ((remainder (- num sum)))
+                 (if (> remainder 2)
+                     ;; recursive call: what we're looking for is a descending
+                     ;; list of fib numbers that total <num-items> exactly,
+                     ;; hence we have to keep doing this until we've got
+                     ;; num-items
+                     (append series (ftar remainder))
+                     ;; we're done so just store the remainder and return
+                     (progn
+                       (when (> remainder 0) 
+                         (push remainder series))
+                       series))))))
+    ;; we might have something like (2 5 3 2 8 5 3 2) so make sure we sort them
+    ;; in descending order.  Note that our sort algorithm takes a function as
+    ;; argument.
+    (fibonacci-transition-aux2 
+     (stable-sort (ftar num-items) #'>)
+     item1 item2)))
+
+;;; Once we have the numbers e.g. (8 5 3 2 1) we convert into indices e.g. 
+;;; (0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 1 1)
+;;;                8         5     3   2 1
+(defun fibonacci-transition-aux2 (list item1 item2)
+  (let ((result '()))
+    (loop for num in list do 
+       ;; so each time we have 'num' items, all but one of which are item1
+         (loop repeat (1- num) do 
+              (push item1 result))
+         (push item2 result))
+    ;; we've used push so we need to reverse the list before returning
+    (nreverse result)))
+
+;;; Return the fibonacci numbers in a list ending at 0 that add up to
+;;; a maximum less than <max-sum>.  Returns the fibonacci number <
+;;; max-sum as a second value.
+(defun fibonacci (max-sum)
+  (loop 
+     ;; our result will be in descending order
+     with result = '(1 0) 
+     ;; the running total of sums
+     with cumulative-sum = 1
+     for x = 0 
+     for y = 0 
+     ;; the sum of our two most recent numbers.
+     for sum = 0 
+     do
+     (setf x (first result)
+           y (second result)
+           sum (+ x y))
+     (incf cumulative-sum sum)
+     (when (> cumulative-sum max-sum)
+       ;; we're not using sum this time as we're over our limit.
+       ;; return can be used in loops to exit immediately
+       (return (values result (1+ (- cumulative-sum sum)))))
+     (push sum result)))
+
+
+;;; Same as fibonacci but eliminates the final 0 and 1s; can also reach max-sum
+;;; rather than having to be < it.
+;;; (fibonacci 20) -> (8 5 3 2 1 1 0) 20
+;;; (fibonacci-start-at-2 20) -> (8 5 3 2) 18
+(defun fibonacci-start-at-2 (max-sum)
+  (multiple-value-bind
+      (series sum)
+      (fibonacci (+ 2 max-sum)) ; + 2 so we can hit max-sum if need be
+    ;; subseq returns a sequence out of our list
+    (values (subseq series 0 (- (length series) 3))
+            (- sum 2))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; EOF multi-loops.lsp
+")) :X 1.3503542536575415D0 :Y 1.9378393892166557D0 :W 0.11 :H 0.015 :BOX-STRING "(Lisp)" :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.0084) :PW-FUNCTION (QUOTE LISP-CODE-BOX)) (MAKE-INSTANCE (QUOTE PWGL-COMMENT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-COMMENT-BOX-SUBVIEW) :R 1.0 :G 1.0 :B 1.0 :BOX-STRING "auto-evaluate" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 100 :Y 100 :WIDTH 500 :HEIGHT 600) :VALUE-STRING "multi loops
+(c) Michael Edwards" :XSCALE-FC 1.1462107 :YSCALE-FC 1.1462107)) :X 0.5543542536575421D0 :Y 2.061839389216657D0 :W 0.6360000119209293D0 :H 0.18400000149011664D0 :BOX-STRING "1" :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.0084) :PW-FUNCTION (QUOTE PWGL-COMMENT-BOX) :OPEN-STATE-W 0.6360000119209293D0 :OPEN-STATE-H 0.18400000149011664D0) (MAKE-INSTANCE (QUOTE PWGL-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-VALUE-BOX-SUBVIEW) :BOX-STRING "num-items" :CURVAL 35 :VALUE-STRING "35") (MAKE-INSTANCE (QUOTE PWGL-VALUE-BOX-SUBVIEW) :BOX-STRING "item2" :VALUE-STRING "0") (MAKE-INSTANCE (QUOTE PWGL-VALUE-BOX-SUBVIEW) :BOX-STRING "item2" :CURVAL 1 :VALUE-STRING "1")) :X 0.5703542536575417D0 :Y 1.7618393892166569D0 :W 0.26 :H 0.24719998 :BOX-STRING "fibonacci-transition" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1 1 1) :ORIG-GROUPING-LIST (LIST 1) :EXTENSION-PATTERN (LIST 1) :EXTENSION-LIMIT 3 :BORDER 0.012) :PW-FUNCTION (QUOTE COMMON-LISP-USER::FIBONACCI-TRANSITION) :CURRENT-EXTENSION-PATTERN-INDEX* 2) (MAKE-INSTANCE (QUOTE PWGL-TEXT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-TEXT-SUBVIEW) :BOX-STRING "text" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 100 :Y 100 :WIDTH 500 :HEIGHT 600) :VALUE-STRING "(0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 1 0 1 1 0 1 0 1 1 0 1 1 1 1 1)" :CONNECTION NIL)) :X 0.946354253657542D0 :Y 1.6978393892166564D0 :W 1.4480000119209296D0 :H 0.12400000149011614D0 :BOX-STRING "text-box" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.012) :PW-FUNCTION (QUOTE TEXT-BOX) :OPEN-STATE-W 1.4480000119209296D0 :OPEN-STATE-H 0.12400000149011614D0 :EXTRA-PARENTHESIS? NIL :FORMAT-ARGS (LIST :FORMAT T :COLUMNS 1 :PRINT-ESCAPE T)) (MAKE-INSTANCE (QUOTE PWGL-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-VALUE-BOX-SUBVIEW) :BOX-STRING "num-items" :CURVAL 21 :VALUE-STRING "21") (MAKE-INSTANCE (QUOTE PWGL-VALUE-BOX-SUBVIEW) :BOX-STRING "item2" :VALUE-STRING "0") (MAKE-INSTANCE (QUOTE PWGL-VALUE-BOX-SUBVIEW) :BOX-STRING "item2" :CURVAL 1 :VALUE-STRING "1")) :X 0.5543542536575417D0 :Y 1.353839389216657D0 :W 0.26 :H 0.24719998 :BOX-STRING "fibonacci-transition-aux1" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1 1 1) :ORIG-GROUPING-LIST (LIST 1) :EXTENSION-PATTERN (LIST 1) :EXTENSION-LIMIT 3 :BORDER 0.012) :PW-FUNCTION (QUOTE COMMON-LISP-USER::FIBONACCI-TRANSITION-AUX1) :CURRENT-EXTENSION-PATTERN-INDEX* 2) (MAKE-INSTANCE (QUOTE PWGL-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-VALUE-BOX-SUBVIEW) :BOX-STRING "list" :CURVAL "(0 1)" :VALUE-STRING "(0 1)" :CONNECTION NIL) (MAKE-INSTANCE (QUOTE PWGL-VALUE-BOX-SUBVIEW) :BOX-STRING "item1" :VALUE-STRING "0") (MAKE-INSTANCE (QUOTE PWGL-VALUE-BOX-SUBVIEW) :BOX-STRING "item2" :CURVAL 1 :VALUE-STRING "1")) :X 1.438354253657542D0 :Y 0.6938393892166568D0 :W 0.52 :H 0.16 :BOX-STRING "fibonacci-transition-aux2" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 2 1) :ORIG-GROUPING-LIST (LIST 2 1) :BORDER 0.012) :PW-FUNCTION (QUOTE COMMON-LISP-USER::FIBONACCI-TRANSITION-AUX2)) (MAKE-INSTANCE (QUOTE PWGL-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-VALUE-BOX-SUBVIEW) :BOX-STRING "max-sum" :CURVAL 20 :VALUE-STRING "20")) :X 0.5383542536575416D0 :Y 0.31783938921665645D0 :W 0.26 :H 0.1 :BOX-STRING "fibonacci-start-at-2" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.012) :PW-FUNCTION (QUOTE COMMON-LISP-USER::FIBONACCI-START-AT-2)) (MAKE-INSTANCE (QUOTE PWGL-TEXT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-TEXT-SUBVIEW) :BOX-STRING "text" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 100 :Y 100 :WIDTH 500 :HEIGHT 600) :VALUE-STRING "(0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 1 0 1)" :CONNECTION NIL)) :X 1.0983542551476582D0 :Y 1.2738393877265413D0 :W 1.0200000119209296D0 :H 0.12400000149011614D0 :BOX-STRING "text-box" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.012) :PW-FUNCTION (QUOTE TEXT-BOX) :OPEN-STATE-W 1.0200000119209296D0 :OPEN-STATE-H 0.12400000149011614D0 :EXTRA-PARENTHESIS? NIL :FORMAT-ARGS (LIST :FORMAT T :COLUMNS 1 :PRINT-ESCAPE T)) (MAKE-INSTANCE (QUOTE PWGL-TEXT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-TEXT-SUBVIEW) :BOX-STRING "text" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 100 :Y 100 :WIDTH 500 :HEIGHT 600) :VALUE-STRING "(0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 1 1 1 1)" :CONNECTION NIL)) :X 1.7183542566377739D0 :Y 0.4458393862364245D0 :W 1.0120000119209296D0 :H 0.13200000149011615D0 :BOX-STRING "text-box" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.012) :PW-FUNCTION (QUOTE TEXT-BOX) :OPEN-STATE-W 1.0120000119209296D0 :OPEN-STATE-H 0.13200000149011615D0 :EXTRA-PARENTHESIS? NIL :FORMAT-ARGS (LIST :FORMAT T :COLUMNS 1 :PRINT-ESCAPE T)) (MAKE-INSTANCE (QUOTE PWGL-TEXT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-TEXT-SUBVIEW) :BOX-STRING "text" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 100 :Y 100 :WIDTH 500 :HEIGHT 600) :VALUE-STRING "(8 5 3 2)" :CONNECTION NIL)) :X 1.1743542581278903D0 :Y 0.3218393847463079D0 :W 0.2680000119209298D0 :H 0.11600000149011614D0 :BOX-STRING "text-box" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.012) :PW-FUNCTION (QUOTE TEXT-BOX) :OPEN-STATE-W 0.2680000119209298D0 :OPEN-STATE-H 0.11600000149011614D0 :EXTRA-PARENTHESIS? NIL :FORMAT-ARGS (LIST :FORMAT T :COLUMNS 1 :PRINT-ESCAPE T)) (MAKE-INSTANCE (QUOTE PWGL-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-VALUE-BOX-SUBVIEW) :BOX-STRING "max-sum" :CURVAL 20 :VALUE-STRING "20")) :X 0.5823542536575421D0 :Y 0.9618395761368226D0 :W 0.26 :H 0.1 :BOX-STRING "fibonacci" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :BORDER 0.012) :PW-FUNCTION (QUOTE COMMON-LISP-USER::FIBONACCI)) (MAKE-INSTANCE (QUOTE PWGL-TEXT-BOX) :PWGL-SUBVIEWS (LIST (MAKE-INSTANCE (QUOTE PWGL-TEXT-SUBVIEW) :BOX-STRING "text" :APPLICATION-WINDOW (MAKE-INSTANCE (QUOTE PWGL-FRED-WINDOW) :TITLE "Text-Editor" :X 100 :Y 100 :WIDTH 500 :HEIGHT 600) :VALUE-STRING "(8 5 3 2 1 1 0)" :CONNECTION NIL)) :X 1.2143542581278908D0 :Y 0.953839384746308D0 :W 0.41200001192092995D0 :H 0.12000000149011569D0 :BOX-STRING "text-box" :PWGL-OUTPUTS (LIST (MAKE-INSTANCE (QUOTE PWGL-OUTPUT))) :BOX-LAYOUT (MAKE-INSTANCE (QUOTE PWGL-BOX-LAYOUT) :GROUPING-LIST (LIST 1) :ORIG-GROUPING-LIST (LIST 1) :X-PROPORTIONS (LIST (LIST 1)) :BORDER 0.012) :PW-FUNCTION (QUOTE TEXT-BOX) :OPEN-STATE-W 0.41200001192092995D0 :OPEN-STATE-H 0.12000000149011569D0 :EXTRA-PARENTHESIS? NIL :FORMAT-ARGS (LIST :FORMAT T :COLUMNS 1 :PRINT-ESCAPE T))) :X 5 :Y 5 :SCALEFX 0.489762916487343D0 :SCALEFY 0.489762916487343D0 :TRANSLX -0.20519999966025332D0 :TRANSLY -0.10439999446272813D0 :CONNECTIONS (LIST (MAKE-INSTANCE (QUOTE PWGL-CONNECTION) :PWBOX1 11 :OUT-BOX 0 :PWBOX2 5 :INPUT-BOX 0 :DRAW-MODE :5POINT :BEZIER-SELECTOR1 (MAKE-INSTANCE (QUOTE PWGL-BEZIER-SELECTOR) :POINT-NUM 1) :BEZIER-SELECTOR2 (MAKE-INSTANCE (QUOTE PWGL-BEZIER-SELECTOR) :POINT-NUM 2)) (MAKE-INSTANCE (QUOTE PWGL-CONNECTION) :PWBOX1 10 :OUT-BOX 0 :PWBOX2 11 :INPUT-BOX 0 :DRAW-MODE :5POINT :BEZIER-SELECTOR1 (MAKE-INSTANCE (QUOTE PWGL-BEZIER-SELECTOR) :POINT-NUM 1) :BEZIER-SELECTOR2 (MAKE-INSTANCE (QUOTE PWGL-BEZIER-SELECTOR) :POINT-NUM 2)) (MAKE-INSTANCE (QUOTE PWGL-CONNECTION) :PWBOX1 6 :OUT-BOX 0 :PWBOX2 9 :INPUT-BOX 0 :DRAW-MODE :5POINT :BEZIER-SELECTOR1 (MAKE-INSTANCE (QUOTE PWGL-BEZIER-SELECTOR) :POINT-NUM 1) :BEZIER-SELECTOR2 (MAKE-INSTANCE (QUOTE PWGL-BEZIER-SELECTOR) :POINT-NUM 2)) (MAKE-INSTANCE (QUOTE PWGL-CONNECTION) :PWBOX1 5 :OUT-BOX 0 :PWBOX2 8 :INPUT-BOX 0 :DRAW-MODE :5POINT :BEZIER-SELECTOR1 (MAKE-INSTANCE (QUOTE PWGL-BEZIER-SELECTOR) :POINT-NUM 1) :BEZIER-SELECTOR2 (MAKE-INSTANCE (QUOTE PWGL-BEZIER-SELECTOR) :POINT-NUM 2)) (MAKE-INSTANCE (QUOTE PWGL-CONNECTION) :PWBOX1 4 :OUT-BOX 0 :PWBOX2 7 :INPUT-BOX 0 :DRAW-MODE :5POINT :BEZIER-SELECTOR1 (MAKE-INSTANCE (QUOTE PWGL-BEZIER-SELECTOR) :POINT-NUM 1) :BEZIER-SELECTOR2 (MAKE-INSTANCE (QUOTE PWGL-BEZIER-SELECTOR) :POINT-NUM 2)) (MAKE-INSTANCE (QUOTE PWGL-CONNECTION) :PWBOX1 2 :OUT-BOX 0 :PWBOX2 3 :INPUT-BOX 0 :DRAW-MODE :5POINT :BEZIER-SELECTOR1 (MAKE-INSTANCE (QUOTE PWGL-BEZIER-SELECTOR) :POINT-NUM 1) :BEZIER-SELECTOR2 (MAKE-INSTANCE (QUOTE PWGL-BEZIER-SELECTOR) :POINT-NUM 2))) :WINDOW-DOCUMENTATION "multi loops
+by Michael Edwards
+
+(1) fibonacci-transition:
+fibonacci-transition-aux1 gradually decreases item1 and increases item2, this does the same but continues to increase item2 until it completely dominates e.g.
+(fibonacci-transition 35 0 1) ->
+(0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 1 0 1 1 1 1 1)
+
+(2) fibonacci-transition-aux1:
+Say you want a transition between two repeating states over a period of x repetitions; this gives you a gradual break in of the second state using fibonacci relationships. <item1> is the start item, <item2> the item we want to transition towards e.g. 
+(fibonacci-transition-aux1 21 0 1) -> 
+(0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 1 0 1 1)  
+
+(3) fibonacci:
+Return the fibonacci numbers in a list ending at 0 that add up to a maximum less than <max-sum>.  Returns the fibonacci number < max-sum as a second value.
+
+(4) fibonacci-transition-aux2:
+Once we have the numbers e.g. (8 5 3 2 1) we convert into indices e.g. 
+(0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 1 1)
+
+(5) fibonacci-start-at-2:
+Same as fibonacci but eliminates the final 0 and 1s; can also reach max-sum rather than having to be < it.
+(fibonacci 20) -> (8 5 3 2 1 1 0) 20
+(fibonacci-start-at-2 20) -> (8 5 3 2) 18" :X 5 :Y 5 :WIDTH 730 :HEIGHT 530))) (WINDOW-SELECT WIN) WIN)

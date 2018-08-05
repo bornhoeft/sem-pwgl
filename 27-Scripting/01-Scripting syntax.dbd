@@ -1,0 +1,25 @@
+:bodytext "Scripting can be used to produce various side-effects (such as expressions, analytical information, timing, color, clef position, etc.) to an input-score using the 'enp-script' box. The position, outlooks and type of the side-effects are defined by the 'rules' input. A scripting rule uses a similar syntax than a Score-PMC rule. Both start with a pattern-matching part where the syntax is identical in both cases. The difference, however, deals with the Lisp-code part. In a Score-PMC rule the Lisp-code part typically returns a truth value, whereas in a ENP-script rule the Lisp code either returns an expression definition or nil."
+
+
+:bodytext "In the former case the rule is used to insert expressions in the score, for instance:"
+:code "(* ?1 ?2 ?3 
+   (?if  (add-expression 'group ?1 ?2 ?3 
+          :info (sc-name (list (m ?1) (m ?2) (m ?3)))))
+   \"analyse 3-card melodic set-classes\")"
+
+:bodytext "Here the rule adds an expression ('add-expression') of type 'group' to all adjacent melodic three-note formations ('?1 ?2 ?3'). The string appearing in the score is given after the ':info' keyword."
+
+:bodytext "In the latter case the rule is used for setting slot values for music notation related objects such as notes, chords, beats, measures, and so on:"
+:code "(* ?1 :chord 
+   (?if (when (m ?1 :complete? t)
+          (dolist (n (notes ?1))
+            (if (< (midi n) 60)
+                (setf (clef-number n) 1)         
+                (setf (clef-number n) 0))))) 
+   \"assign notes below 60 to bass clef\")"
+
+:bodytext "This rule sets the clef number of all notes in a chord so that notes having a midi-value below 60 will be assigned to the bass clef.
+
+For a more detailed discussion of the constraints syntax see the 'Constraints' chapter of this tutorial.
+
+Also for more information see the paper 'ENP-Script-ISMIR05.pdf' that is found in the 'documentation/publications' folder."

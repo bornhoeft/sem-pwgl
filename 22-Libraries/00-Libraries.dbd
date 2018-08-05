@@ -1,0 +1,141 @@
+:section-start "General information about PWGL Libraries"
+
+:section-start "Where libraries are installed"
+
+:bodytext "PWGL searches for Libraries in two locations. One inside the PWGL-Application folder, the other inside your home folder (click on the links below to see the exact location)."
+
+:link #.(ccl::pwgl-location :root "pwgl-library/")
+:protocol :file
+:link-text "Open the libraries folder inside the PWGL-Application folder" 
+
+:link #.(ccl::pwgl-location :user-library)
+:protocol :file
+:link-text "Open the libraries folder in your home folder"
+
+:important "The place inside your home folder is intended for your personal libraries. It allows you to safely install a new version of PWGL without accidentally deleting your work."
+:section-end
+
+:section-start "Creating a PWGL Library"
+
+:bodytext "The easiest way of creating a new library is to go to #menu#File § Create PWGL Library...#menuoff# and use the Library Tool to fill in the appropriate information. When finished the tool creates the required components, all the needed files and folders along with some additional parts, such as dynamically updated front and info pages, logo, etc."
+"It is a good practise to try to provide all the pertinent information about the library. It helps maintaining and distributing your work. It also makes it easier to use some of the advanced documentation features of PWGL, details of which are given in the following sections."
+
+:section-end
+
+:section-end
+
+:section-start "Techincal Details"
+
+:bodytext "This section enumerates the key points you need to know in order to be able to develop your own libraries. The PWGL user library scheme relies on the ASDF system definition facility. You should take a moment to get acquainted with ASDF. A good place to start the official documentation:" 
+
+:link "http://constantly.at/lisp/asdf/index.html"
+:protocol :http
+:link-text "asdf Manual"
+
+:section-start "Constituent bits of a typical library"
+:bodytext "Writing your own libraries requires a couple of files. You can find an example library in pwgl-library/mylib. " 
+
+:link #.(ccl::pwgl-location :root "pwgl-library/mylib/") 
+:protocol :file
+:link-text "Open mylib folder"
+
+:bodytext "The following sections explain briefly the purpose of each file:"
+
+:table2
+"FILE"                          "SECTION"
+"mylib.asd"                     "Defining an ASDF system "
+"package.lisp"                  "Defining your own package    "
+"standard-lisp-code.lisp"       "Defining standard lisp code "
+"boxes.lisp"                    "Defining boxes"
+"menus.lisp"                    "Defining menus"
+"tutorial"                      "Tutorial patches "
+"lib-properties.txt"            "Library properties"
+:section-end
+
+:section-start "The ASDF system definition"
+
+:bodytext "An ASDF system basically lists all the source files of your library. Typically, they need to be loaded in a certain order. An easy way of specifying this is to use the option #typewriter#:serial t#typewriteroff# and then list them in the desired order after the :components keyword as shown in the following example:"
+
+:code "(in-package :asdf)
+
+\(defsystem :mylib
+  ;; :serial t means that each component is only compiled, when the
+  ;; predecessors are already loaded
+  :serial t 
+  :components
+  ((:file \"package\")		     ; use your own package
+   ;; macros first, if you need some
+   (:file \"macros\")
+   ;; define your boxes and other lisp functions
+   (:file \"code\")
+   ;; specify the entries in the popup-menu, which is used to add
+   ;; boxes to a patch (right-click)
+   (:file \"menus\")))" 
+
+:bodytext "If you ever need more options for defining your system, you can look at:"
+
+:link "http://constantly.at/lisp/asdf/Defining-systems-with-defsystem.html#Defining%20systems%20with%20defsystem"
+:protocol :http
+:link-text "Defining systems with defsystem"
+
+:section-end
+
+:section-start "Defining your own package"
+:bodytext "It is recommended that you define your own package for your library, as this keeps its symbols together and also allows for autoloading your library by simply opening a patch that uses it (see also 'Library properties')."
+:section-end
+
+:section-start "Defining standard lisp code"
+:bodytext "You can write of course any lisp code you like! (see 'Compiling your library') Among all the possibilites you have there, you will mainly want to define functions using 'defun' and possibly macros using 'defmacro'."
+:section-end
+
+:section-start "Defining boxes"
+:bodytext "The boxes make up the interface of your library - those functions that are actually used from a patch. A simple box definition looks as follows:"
+
+:code "(PWGLdef fn1 ((a 1))
+    \"fn1\"
+    ()
+  (list a))"
+
+:bodytext "PWGL provides a special definer for boxes: 'PWGLdef' A box definition works similarly to a function definition using 'defun' (in fact a box is a function!). But 'PWGLdef' allows you to make a much richer definition. You can specify default values and control the appearance of the box in much detail. For more information see Tutorial/Basic/box-creation.pwgl"
+:section-end
+
+:section-start "Defining menus"
+:bodytext "This defines the entries in the popup-menu that you get with ctrl-click. If you need more explanation about the syntax of 'add-PWGL-user-menu', please ask us on the mailing list."
+
+:code "(ccl::add-PWGL-user-menu 
+ '(:menu-component
+   (\"MyLib\"
+    ((fn1)
+     (\"fns1\"  (fn2))
+     (\"fns2\"  (fn3  fn4)
+              (\"deepfns2\"  (fn5)))
+     (:menu-component
+      (fn6 fn7))))))"
+
+:section-end
+
+:section-start "Compiling your library"
+:bodytext "If you load a library using #menu#File § Load library#menuoff#, the library will be automatically compiled, before it is loaded. The rationale of this is that you can write your own lisp code and use it with PWGL (or download any thirdparty lisp code from the internet) even if you are using PWGL standalone (this is a new feature in PWGL-rc10)."
+"Depending on which PWGL system you are using, the compilation happens slightly differently. On all systems, a so called 'fasl-file' will be placed next to the lisp source code file.
+If you are using PWGL standalone (without LispWorks), for a lisp file called boxes.lisp the compiled version will be called boxes.clufasl. This is a 'universal fasl format', that can be loaded on any platform (mac, windows ...).
+If you are using the Binary version of PWGL together with LispWorks, a fasl file in the native format of the actualy platform being used will be generated.
+If you need more information on this, please contact us on the mailing list."
+:section-end
+
+:section-start "Tutorial patches"
+:bodytext "If a library contains a folder called 'tutorial' then this folder will appear (with the current library name) in the PWGL Help navigation pane after the library has been loaded. Typically this folder contains example patches and text files. The patches should use a standard size (the correct size can be obtained from #menu#Window § Set Tutorial size#menuoff#).
+It is also recommended that a tutorial patch should contain written documentation (the documentation string can be added using #menu#Window § Edit Window...#menuoff#). For more lengthy textual information you can use also a plain text file (with an extension '.txt.') where the text part should be enclosed inside quotation marks."
+:section-end
+
+:section-start "Library properties"
+:bodytext "The file 'lib-properties.txt' is used to specify additional properties of a library in a lispy format. For mylib this file currently contains:"
+
+:code "(:package-names (\"my-package\"))"
+
+:bodytext "The property ':package-names' is used here, because the name of the package that mylib uses is different from the library name (this property is only needed in such a case). It allows a library to be automatically loaded, by simply opening a patch that uses it.
+More additional properties will be used in the future to allow checking for updates on the web etc... "
+:section-end
+:section-end
+
+
+

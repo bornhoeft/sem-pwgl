@@ -1,0 +1,71 @@
+:section-start "Documentation Builder"
+
+:bodytext
+"Documentation Builder is a specialized tool that can be used to display different kinds of documents arranged in a hierarchical way. The individual documents, in turn, may range from plain text to a fully interactive application. In addition to displaying software specific documentation this tool can also be used to create presentations, tutorials, etc."
+
+"As can be seen in #tutorialempty# the Documentation Builder contains two parts: the hierarchical menu view (a) and the document view (b)."
+
+
+
+:figure "tutorialempty.jpg"
+:caption "The basic components of the Documentation Builder."
+
+:bodytext
+"The documentation Builder is given the top folder inside which all the documentation components reside. The documentation tool automatically reads all the files inside the top level folder and arranges the documentation objects according to the file hierarchy.
+There is a simple protocol how the actual filenames are converted to corresponding names in the tree-view:"
+:items
+- "Every numeral at the beginning is removed, and" 
+- "all hyphens are removed."
+
+:bodytext
+"#filetree# gives an example of a file structure inside an imaginary tutorial folder. #tree2#, in turn, shows the menu view of the automatically created \"tutorial window\" with the converted document/folder names."
+
+
+
+:figure "filetree.jpg"
+:caption "The file structure inside the tutorial folder."
+
+
+
+:figure "tree2.jpg"
+:caption "The file structure converted to a hierarchical tree view (all leafs expanded) with the converted document names."
+
+
+:bodytext
+"There are currently three kinds of documentation components supported:"
+:items
+- "Plain text (Lisp strings), i.e., \"This is a lisp string\". Strings can (and should) also contain line breaks."
+- "CAPI objects. Any instance of pane, panel, interface or combination thereof is acceptable."
+- "Files written in the built-in extension language."
+
+:bodytext
+"Next, we discuss the two former types. The third option, the extension language, is discussed in detail in the next subsection."
+
+"#tutorial# shows a simple text-based document."
+
+:figure "tutorial.jpg"
+:caption "A typical view of the tutorial with a simple text-based document shown on the right."
+
+
+:bodytext
+"When designing more complex documents one can take an advantage of CAPI (Common Application Programmer’s Interface) provided by LispWorks. CAPI can be used to define sophisticated and interactive documentation applications. Below is an example of CAPI code implementing an application containing a title pane, a piano keyboard, a pc-clock, and a push button. #application# shows the functional application. "
+
+
+:code "
+(capi:define-Interface CAPI-application ()
+  () 
+  (:panes
+   (title capi:title-pane 
+          :text \"Enter pitches:\")
+   (keyboard pcs::keyboard 
+          :octaves 1 
+          :lowest-octave 5)
+   (clock pcs::pc-clock-pane 
+          :sc 'pcs::5-Z12)
+   (button capi:push-button
+          :text \"Clear\")))
+"
+
+:figure "application.jpg"
+:caption "An interactive application programmed using CAPI."
+:section-end

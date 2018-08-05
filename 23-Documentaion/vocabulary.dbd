@@ -1,0 +1,52 @@
+:window-documentation "This document enumerates all the pertinent DBL componenets, e.g., 'TITLE' illustrates how a component named ':title' appears in a DBL document"
+
+:title "TITLE"
+
+:subtitle "SUBTITLE"
+
+:section-start "SECTION-START"
+
+:section-start "SUBSECTION-START"
+
+:section-end
+
+:bodytext "BODYTEXT"
+
+:bodytext 
+"BODYTEXT"
+"BODYTEXT"
+
+:important "IMPORTANT"
+
+:code "CODE"
+
+:figure "preview.jpg"
+:caption "CAPTION"
+
+:items
+:list-style :french
+- "ITEMS"
+- "ITEMS"
+
+:items
+- "ITEMS"
+-- "SUB ITEM"
+-- "SUB ITEM"
+- "ITEMS"
+
+:inline-items
+- "INLINE-ITEMS"
+- "INLINE-ITEMS"
+- "INLINE-ITEMS"
+
+:link "http://www.siba.fi/pwgl"
+:protocol :http
+:link-text "LINK"
+
+:table
+:columns 3
+"TITLE" "TITLE" "TITLE"
+"CELL" "CELL" "CELL"
+"CELL" "CELL" "CELL"
+
+:section-end

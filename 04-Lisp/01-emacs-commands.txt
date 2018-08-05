@@ -1,0 +1,38 @@
+"Emacs command that can be used in the Text-Editor
+
+    [ctr]-x then [ctr]-c Quit.
+    [ctr]-x then [ctr]-f Load file.
+    [ctr]-x then [ctr]-s Save file.
+    [ctr]-x then [ctr]-b List buffers.
+    [ctr]-x then b Go to the next buffer. 
+
+    [ctr]-v List forward.
+    [esc]-v List backward. 
+
+    [ctr]-p Go one line up.
+    [ctr]-b Go one symbol left.
+    [ctr]-n Go one line down.
+    [ctr]-f Go one symbol right.
+    [esc]-f Go one word right.
+    [esc]-b Go one word left. 
+
+    [ctr]-a Go to the beginning of line.
+    [esc]-< Go to the beginning of file. 
+
+    [ctr]-x then 2 Split screen in two.
+    [ctr]-x then 1 Leave just the current window.
+    [ctr]-x then o Switch to other window. 
+
+    [ctr]-s Search forward.
+    [ctr]-r Search backward. 
+
+    [ctr]-k Deletes line from marker to end of line.
+    [ctr]-d Delete one char under the cursor.
+    [ctr]-l Refresh the screen.
+    [ctr]-y Paste recently deleted symbols. 
+
+    [ctr]-SPACE Push point.
+    [ctr]-w Kill region (between point and cursor).
+    [esc]-w Copy region into the kill buffer
+    [ctr]-x [ctr]-x Interchange cursor and point. 
+"

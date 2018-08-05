@@ -1,0 +1,15 @@
+:title "Gyoergy Ligeti - Continuum (1958)"
+
+:bodytext "Link to Wikipedia:"
+
+:link "http://en.wikipedia.org/wiki/xxx"
+:protocol :http
+:link-text "Continuum"
+
+:bodytext "Score:"
+
+:link "./continuum.pdf"
+:protocol :file
+:link-text "Continuum"
+
+

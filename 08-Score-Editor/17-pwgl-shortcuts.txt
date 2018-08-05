@@ -1,0 +1,26 @@
+"Here are some shortcuts in PWGL:
+
+*inside a patch
+	control-f: sizes everything to fit in the current window
+ 
+*when a box is selected
+	v : evaluate
+	command+shift+ .   = stop a process when it lasts to long
+	d : documentation
+	shift + m : minimize (pretty useful to clean up a patch)
+	x / y : align two of more boxes (murphy's law : you generally pick the wrong one and it messes everything)
+
+*within a chord-editor
+	a : add a note
+	left & right arrows : scroll between chords
+	up & down arrows (when a note is selected) : change pitch
+	tab or shift+tab (when a note is selected) : forward of backward the selected note (in red)
+
+*within a score-editor
+	same as chord-editor (except left & right arrows are useless)
+		note : in this case, the a key adds a note to another one to make a chord
+
+	esc + r : rhythm mode
+	a (in rhythm mode, when the grey rectangle above a note is selected) : add a note
+	a (in rhythm mode, when the stem of a note is selected) : add a note and a subdivision (a 1/4 note goes to a 1/8 note, then a triolet, etc.)
+	shift+b or shift+a (in rhythm mode, when the stem of a note is selected) : add a grace note before (b) or after (a) the note"
