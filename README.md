@@ -1,4 +1,4 @@
-## Introduction
+# PWGL Tutorial
 
 sem-pwgl is a step-by-step tutorial for the classes in Computer Assisted Composition at the Studio for Electronic Music at the Mozarteum, Salzburg, Austria.
 
